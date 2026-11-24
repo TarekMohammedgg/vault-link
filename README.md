@@ -1,8 +1,8 @@
 # vault-link
 
-Connect a code project to a Markdown vault, an Obsidian vault, or any folder you use as a second brain.
+Connect a code project to a vault. The vault can be a Markdown folder or an Obsidian vault.
 
-`vault-link` writes one managed section into the project's agent instructions. Cursor, Claude Code, Gemini CLI, and other agents can then find the vault and follow its own rules. Notes stay in the vault. The project stores only a local pointer, and that pointer is kept out of Git.
+`vault-link` writes one managed section into the project's agent instructions. Cursor, Claude Code, Gemini CLI, and other agents can then find the vault and follow its own rules. The vault stays in its own folder. The project stores only a local pointer, and that pointer is kept out of Git.
 
 ## Install
 
@@ -43,8 +43,8 @@ Running the installer again upgrades the command.
 Run it from the project root, or pass the project directory as the last argument. Pick one source.
 
 ```bash
-vault-link --local "$HOME/notes"
-vault-link --repo "https://github.com/you/second-brain"
+vault-link --local "$HOME/vault"
+vault-link --repo "https://github.com/you/vault"
 ```
 
 | Source | Use it when |
@@ -55,8 +55,8 @@ vault-link --repo "https://github.com/you/second-brain"
 Preview the edits without writing or cloning:
 
 ```bash
-vault-link --check --local "$HOME/notes"
-vault-link --check --repo "https://github.com/you/second-brain"
+vault-link --check --local "$HOME/vault"
+vault-link --check --repo "https://github.com/you/vault"
 ```
 
 Use a normal `https://` or `ssh://` / `git@` URL. Do not put a token, password, query string, or fragment in the URL. Private repositories use the Git credentials already configured on the machine.
