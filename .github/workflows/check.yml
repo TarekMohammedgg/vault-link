@@ -1,0 +1,25 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  command:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the command and installer
+        run: |
+          set -euo pipefail
+          bash -n bin/vault-link
+          bash -n install.sh
+          bash bin/vault-link --help >/dev/null
+          if bash bin/vault-link --bogus >/dev/null 2>&1; then
+            echo "unknown option was accepted" >&2
+            exit 1
+          fi
+          if bash bin/vault-link --check --repo "https://user:token@github.com/you/vault" >/dev/null 2>&1; then
+            echo "credential URL was accepted" >&2
+            exit 1
+          fi

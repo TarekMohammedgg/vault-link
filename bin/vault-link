@@ -1,0 +1,258 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+die() { printf '[vault-link] %s\n' "$*" >&2; exit 1; }
+say() { printf '[vault-link] %s\n' "$*"; }
+
+BIN="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+OS_NAME="$(uname -s)"
+CONFIG=.vault-link-local
+changes=0
+
+path_for_shell() {
+  local path="$1" drive
+  case "$OS_NAME" in
+    MINGW*|MSYS*|CYGWIN*)
+      if [[ "$path" = /mnt/[a-zA-Z]/* ]]; then path="${path#/mnt}"; fi
+      cygpath -au "$path" ;;
+    Linux)
+      if [[ "$path" =~ ^([a-zA-Z]):[/\\] ]]; then
+        drive="$(printf '%s' "${BASH_REMATCH[1]}" | tr '[:upper:]' '[:lower:]')"
+        if [ -d "/mnt/$drive" ]; then path="/mnt/$drive/${path:3}"; path="${path//\\//}"; fi
+      fi
+      printf '%s\n' "$path" ;;
+    *) printf '%s\n' "$path" ;;
+  esac
+}
+
+show_help() {
+  printf '%s\n' \
+    'Usage: vault-link --install' \
+    '       vault-link [--check] --local DIR [PROJECT_DIR]' \
+    '       vault-link [--check] --repo GIT_URL [PROJECT_DIR]' \
+    '       vault-link [--check | --update] [PROJECT_DIR]' \
+    '' 'Run from the project root or pass its path. --check previews project changes.'
+}
+
+install_portable() {
+  local target launcher
+  target="$(path_for_shell "${VAULT_LINK_BIN:-$HOME/.local/bin}")"
+  mkdir -p "$target"
+  target="$(cd "$target" && pwd -P)"
+  if [ "$target" != "$BIN" ]; then
+    for launcher in vault-link vault-link.cmd vault-link.ps1; do
+      if ! cmp -s "$BIN/$launcher" "$target/$launcher"; then
+        cp "$BIN/$launcher" "$target/$launcher"
+      fi
+    done
+  fi
+  chmod +x "$target/vault-link"
+  say "Installed in $target. Add this directory to PATH if needed."
+}
+
+# Allow standard Git transports without accepting credentials in HTTPS URLs.
+validate_repo() {
+  if [[ "$1" =~ ^https://[^/@[:space:]]+/[^[:space:]?\#]+$ ||
+        "$1" =~ ^ssh://[^/[:space:]]+/[^[:space:]?\#]+$ ||
+        "$1" =~ ^git@[^:[:space:]]+:[^[:space:]?\#]+$ ]]; then
+    # An SSH username is permitted. Passwords and URL userinfo tokens are not.
+    if [[ "$1" = ssh://* ]]; then
+      local authority="${1#ssh://}"
+      authority="${authority%%/*}"
+      [[ "$authority" != *:*@* ]] || die 'Use a credential-free SSH URL.'
+    fi
+    return
+  fi
+  die 'Use a Git HTTPS or SSH URL without embedded credentials, query parameters, or fragments.'
+}
+
+set_link() {
+  local dest="$1" draft="$2" name
+  name="${dest##*/}"
+  if [ -f "$dest" ] && cmp -s "$dest" "$draft"; then return; fi
+  changes=$((changes + 1))
+  if [ "$check" = yes ]; then
+    say "Would write $name."
+    return
+  fi
+  local adjacent
+  adjacent="$(mktemp "$project/.$name.vault-link.XXXXXX")"
+  if ! { [ ! -f "$dest" ] || cp -p "$dest" "$adjacent"; } ||
+     ! cat "$draft" >"$adjacent" || ! mv -f "$adjacent" "$dest"; then
+    rm -f "$adjacent"
+    die "Could not write $name."
+  fi
+  say "Wrote $name."
+}
+
+explicit="" source_type="" source_value="" check=no update=no install=no all=no operands=()
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --help|-h) show_help; exit ;;
+    --local|--repo)
+      [ -z "$explicit" ] || die 'Choose one source with --local or --repo.'
+      [ "$#" -ge 2 ] && [[ "$2" != --* ]] || die "$1 needs a value."
+      explicit=1; source_type="${1#--}"; source_value="$2"; shift ;;
+    --check) check=yes ;;
+    --update) update=yes ;;
+    --install) install=yes ;;
+    --all) all=yes ;;
+    --*) die "Unknown option: $1" ;;
+    *) operands+=("$1") ;;
+  esac
+  shift
+done
+if [ "$install" = yes ]; then
+  [ -z "$explicit" ] && [ "$check$update$all" = nonono ] && [ "${#operands[@]}" -eq 0 ] || die 'Use --install on its own.'
+  if [ -f "$BIN/vault-link-legacy" ]; then exec bash "$BIN/vault-link-legacy" --install; fi
+  install_portable
+  exit
+fi
+
+candidate="$(path_for_shell "${operands[0]:-$PWD}")"
+if [ -z "$explicit" ] && [ ! -f "$candidate/$CONFIG" ] && [ ! -L "$candidate/$CONFIG" ]; then
+  if [ -f "$BIN/vault-link-legacy" ]; then
+    legacy_args=()
+    [ "$check" = no ] || legacy_args+=(--check)
+    [ "$update" = no ] || legacy_args+=(--update)
+    [ "$all" = no ] || legacy_args+=(--all)
+    exec bash "$BIN/vault-link-legacy" "${legacy_args[@]}" "${operands[@]}"
+  fi
+  die 'Choose --local DIR or --repo GIT_URL to link a project.'
+fi
+[ "${#operands[@]}" -le 1 ] && [ "$all" = no ] || die 'Pass one project directory for this vault link.'
+[ -d "$candidate" ] || die 'The project directory does not exist.'
+project="$(cd "$candidate" && pwd -P)"
+for name in "$CONFIG" AGENTS.md .gitignore; do
+  [ ! -L "$project/$name" ] || die "Refusing to edit a symlink: $name"
+  [ ! -e "$project/$name" ] || [ -f "$project/$name" ] || die "Expected a file: $name"
+done
+if git -C "$project" ls-files --error-unmatch -- "$CONFIG" >/dev/null 2>&1; then
+  die "Remove $CONFIG from the Git index before linking. It stores machine-local paths."
+fi
+if [ -z "$explicit" ]; then
+  source_type="$(sed -n 's/\r$//; s/^source: //p' "$project/$CONFIG")"
+  case "$source_type" in
+    local) source_value="$(sed -n 's/\r$//; s/^vault_path: //p' "$project/$CONFIG")" ;;
+    repo) source_value="$(sed -n 's/\r$//; s/^vault_repo: //p' "$project/$CONFIG")" ;;
+    *) die "Invalid source in $CONFIG. Specify --local or --repo again." ;;
+  esac
+fi
+[[ "$source_value" != *$'\n'* && "$source_value" != *$'\r'* && -n "$source_value" ]] || die 'Invalid vault source.'
+
+if [ "$source_type" = local ]; then
+  local_dir="$(path_for_shell "$source_value")"
+  [ -d "$local_dir" ] || die 'The local vault folder does not exist.'
+  vault="$(cd "$local_dir" && pwd -P)"
+else
+  validate_repo "$source_value"
+  cache="$(path_for_shell "${VAULT_LINK_CACHE:-${XDG_CACHE_HOME:-$HOME/.cache}/vault-link}")"
+  key="$(printf '%s' "$source_value" | git hash-object --stdin)"
+  vault="$cache/$key"
+  [[ "$vault/" != "$project/"* ]] || die 'Set VAULT_LINK_CACHE outside the project.'
+  [ ! -L "$vault" ] || die 'The cache path is a symlink.'
+fi
+
+scratch="$(mktemp -d)"
+trap 'rm -rf -- "$scratch"' EXIT
+if [ "$source_type" = local ]; then
+  project_key="$project"; vault_key="$vault"
+  case "$OS_NAME" in
+    MINGW*|MSYS*|CYGWIN*)
+      project_key="$(cygpath -am "$project" | tr '[:upper:]' '[:lower:]')"
+      vault_key="$(cygpath -am "$vault" | tr '[:upper:]' '[:lower:]')" ;;
+  esac
+  [[ "$project_key/" != "$vault_key/"* ]] || die 'Run this command from a project outside the vault.'
+fi
+cat >"$scratch/block" <<'EOF'
+<!-- vault-link:start -->
+## Linked knowledge vault
+
+- Read the vault location from `vault_path:` in this project's ignored `.vault-link-local` file. If the file is missing on this machine, ask for the vault location or its Git URL.
+- Start with the vault's `AGENTS.md` when present, or its top-level `README.md`. Use its current index to find the files relevant to this project and task.
+- For a Git-linked vault, run `vault-link --update` to refresh the cached checkout. Follow the owner's read and write rules for any vault work.
+<!-- vault-link:end -->
+EOF
+if [ -f "$project/AGENTS.md" ]; then
+  # Replace one complete managed block, including the original bridge markers.
+  awk -v block="$scratch/block" '
+    function insert(    line) {
+      while ((getline line < block)>0) print line ending
+      close(block)
+    }
+    NR==1 && /\r$/ { ending="\r" }
+    /^<!-- vault-(link|bridge):start -->\r?$/ {
+      if (found++ || active) { invalid=1; exit }
+      active=$0; sub(/:start.*/, "", active)
+      insert(); next
+    }
+    /^<!-- vault-(link|bridge):end -->\r?$/ {
+      if (!active || index($0,active ":end")!=1) { invalid=1; exit }
+      active=""; next
+    }
+    !active { print }
+    END {
+      if (active || invalid) exit 1
+      if (!found) { if (NR) print ending; insert() }
+    }' "$project/AGENTS.md" >"$scratch/agents" || die 'AGENTS.md has incomplete or repeated vault-link markers.'
+else
+  cp "$scratch/block" "$scratch/agents"
+fi
+
+if [ "$source_type" = repo ]; then
+  if [ "$check" = yes ]; then
+    say 'Would clone or refresh the vault cache.'
+  elif [ ! -e "$vault" ]; then
+    mkdir -p "$cache"
+    git clone --quiet -- "$source_value" "$vault" || die 'Could not clone the vault. Check Git access and retry.'
+  else
+    [ -d "$vault/.git" ] && [ "$(git -C "$vault" config --get remote.origin.url)" = "$source_value" ] ||
+      die 'The cache does not belong to this repository.'
+    [ -z "$(git -C "$vault" status --porcelain)" ] || die 'The vault cache has local edits.'
+    git -C "$vault" pull --ff-only --quiet || die 'Could not refresh the vault cache.'
+  fi
+fi
+
+stored_path="$vault"
+case "$OS_NAME" in
+  MINGW*|MSYS*|CYGWIN*) stored_path="$(cygpath -am "$vault")" ;;
+esac
+printf 'source: %s\nvault_path: %s\n' "$source_type" "$stored_path" >"$scratch/config"
+if [ "$source_type" = repo ]; then printf 'vault_repo: %s\n' "$source_value" >>"$scratch/config"; fi
+if [ ! -f "$project/.gitignore" ] ||
+   ! grep -Eq '^/?\.vault-link-local\r?$' "$project/.gitignore" ||
+   { git -C "$project" rev-parse --is-inside-work-tree >/dev/null 2>&1 &&
+     ! git -C "$project" check-ignore -q --no-index -- "$CONFIG"; }; then
+  if [ -f "$project/.gitignore" ]; then
+    cat "$project/.gitignore" >"$scratch/ignore"
+    if [ -n "$(tail -c 1 "$project/.gitignore")" ]; then printf '\n' >>"$scratch/ignore"; fi
+  fi
+  printf '/.vault-link-local\n' >>"$scratch/ignore"
+  set_link "$project/.gitignore" "$scratch/ignore"
+fi
+set_link "$project/$CONFIG" "$scratch/config"
+set_link "$project/AGENTS.md" "$scratch/agents"
+for name in CLAUDE.md GEMINI.md; do
+  alias_file="$project/$name"
+  if [ -L "$alias_file" ]; then
+    [ "$(readlink "$alias_file")" = AGENTS.md ] || say "Kept custom $name symlink."
+    continue
+  fi
+  if [ -e "$alias_file" ] && [ ! -f "$alias_file" ]; then
+    say "Skipped $name because it is not a regular file."
+    continue
+  fi
+  : >"$scratch/alias"
+  if [ -f "$alias_file" ]; then
+    if grep -Eq '^@(\./)?AGENTS\.md[[:space:]]*$' "$alias_file"; then continue; fi
+    cat "$alias_file" >"$scratch/alias"
+    if [ -s "$alias_file" ]; then printf '\n' >>"$scratch/alias"; fi
+  fi
+  printf '@AGENTS.md\n' >>"$scratch/alias"
+  set_link "$alias_file" "$scratch/alias"
+done
+if [ "$changes" -eq 0 ]; then
+  say 'Project link is up to date.'
+elif [ "$check" = no ]; then
+  say 'Vault linked.'
+fi
