@@ -181,6 +181,25 @@ cat >"$scratch/block" <<'EOF'
 2. Treat the linked vault as Tarek's **Second Brain**: shared context across Claude, ChatGPT, Gemini, Codex, and other agents.
 3. Vault rules apply only when reading or changing the vault. Before every vault write, read the vault's `AGENTS.md`, router `README.md`, [[agents/skills/agent-write-method/SKILL|Agent Write Method]], and relevant Obsidian writing skill.
 
+### Work from either entry point
+- Tarek may ask for work while the agent is operating inside this code project, or while it is operating inside TarekVault. Both entry points must follow the same routing and reach the same linked state.
+- If the task changes this code project, first follow this project's root `AGENTS.md`. It remains authoritative for project code, architecture, tests, commands, and repository changes.
+- If the task reads, searches, or changes TarekVault, also follow the vault's own root `AGENTS.md`, router `README.md`, and the relevant vault skills. For vault writes, additionally follow Agent Write Method and Obsidian conventions. Project rules do not replace vault rules, and vault rules do not override project coding rules.
+- If a request spans both sides, do the project work under project rules, then sync and update the vault under vault rules. Do not skip either side because the request originated in the other location.
+- When project work changes verified project facts, update the one canonical `projects/<slug>/README.md` in TarekVault and its `projects/README.md` index entry if missing. Identify the project by repository URL or project identity; update an existing brief instead of duplicating it.
+- When a request starts in TarekVault and creates or modifies a code project, apply the exact same project-side linking block and local configuration described below; do not create a weaker or different integration.
+- Do not create activity logs or save unrelated personal memory.
+
+### Shared completion state
+A successfully linked project has all of the following, regardless of which side initiated the work:
+1. One Vault Link managed section in the project's root `AGENTS.md`, with all user-authored content outside the managed markers preserved.
+2. An ignored, machine-local `.vault-link-local` pointer and a `.gitignore` rule for it.
+3. `CLAUDE.md` / `GEMINI.md` imports of `AGENTS.md` where those entry points exist and do not already import it.
+4. Exactly one canonical `projects/<slug>/README.md` in TarekVault, plus an entry in `projects/README.md`.
+5. The project agent follows project instructions for code work and vault instructions for every vault operation.
+
+Vault Link CLI writes items 1–3. The agent is responsible for items 4–5 because they require project identity, vault context, and the vault's write/sync rules. Verify the full state after either linking flow.
+
 ### Create a project from the vault (explicit opt-in)
 - Never scan, discover, monitor, or automatically link other project folders. Existing projects are linked only when Tarek explicitly runs the normal link command from that project.
 - When Tarek explicitly asks to create a project from this vault, first confirm the exact project name/slug, target directory, and source material (local folders or repositories). Use the coding agent's local filesystem access to inspect the supplied sources and create the project scaffold in the requested target directory.
