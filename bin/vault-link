@@ -30,8 +30,11 @@ show_help() {
     'Usage: vault-link --install' \
     '       vault-link [--check] --local DIR [PROJECT_DIR]' \
     '       vault-link [--check] --repo GIT_URL [PROJECT_DIR]' \
+    '       vault-link --link-created [--check] --local DIR PROJECT_DIR' \
+    '       vault-link --link-created [--check] --repo GIT_URL PROJECT_DIR' \
     '       vault-link [--check | --update] [PROJECT_DIR]' \
-    '' 'Run from the project root or pass its path. --check previews project changes.'
+    '' 'Run from the project root or pass its path. --check previews project changes.' \
+    '' 'Use --link-created only after the user explicitly requested project creation from the vault.'
 }
 
 install_portable() {
@@ -91,7 +94,7 @@ set_link() {
   say "Wrote $name."
 }
 
-explicit="" source_type="" source_value="" check=no update=no install=no operands=()
+explicit="" source_type="" source_value="" check=no update=no install=no programmatic=no operands=()
 while [ "$#" -gt 0 ]; do
   case "$1" in
     --help|-h) show_help; exit ;;
@@ -99,7 +102,7 @@ while [ "$#" -gt 0 ]; do
       [ -z "$explicit" ] || die 'Choose one source with --local or --repo.'
       [ "$#" -ge 2 ] && [[ "$2" != --* ]] || die "$1 needs a value."
       explicit=1; source_type="${1#--}"; source_value="$2"; shift ;;
-    --check) check=yes ;;
+    --check) check=yes ;;\n    --link-created) programmatic=yes ;;
     --update) update=yes ;;
     --install) install=yes ;;
     --*) die "Unknown option: $1" ;;
@@ -113,13 +116,19 @@ if [ "$install" = yes ]; then
   exit
 fi
 
+if [ "$programmatic" = yes ]; then
+  [ -n "$explicit" ] || die '--link-created requires an explicit --local or --repo source.'
+  [ "$update" = no ] || die '--link-created cannot be combined with --update.'
+  [ "${#operands[@]}" -eq 1 ] || die '--link-created requires the existing project directory created by the agent.'
+fi
+
 candidate="$(path_for_shell "${operands[0]:-$PWD}")"
 if [ -z "$explicit" ] && [ ! -f "$candidate/$CONFIG" ] && [ ! -L "$candidate/$CONFIG" ]; then
   die 'Choose --local DIR or --repo GIT_URL to link a project.'
 fi
 [ "${#operands[@]}" -le 1 ] || die 'Pass one project directory for this vault link.'
 [ -d "$candidate" ] || die 'The project directory does not exist.'
-project="$(cd "$candidate" && pwd -P)"
+project="$(cd "$candidate" && pwd -P)"\nif [ "$programmatic" = yes ]; then say "Linking the explicitly requested, already-created project: $project"; fi
 for name in "$CONFIG" AGENTS.md .gitignore; do
   [ ! -L "$project/$name" ] || die "Refusing to edit a symlink: $name"
   [ ! -e "$project/$name" ] || [ -f "$project/$name" ] || die "Expected a file: $name"
@@ -169,6 +178,16 @@ cat >"$scratch/block" <<'EOF'
 1. Read this project's root `AGENTS.md` first. It is the primary authority for project work, commands, architecture, coding standards, and repository changes.
 2. Treat the linked vault as Tarek's **Second Brain**: shared context across Claude, ChatGPT, Gemini, Codex, and other agents.
 3. Vault rules apply only when reading or changing the vault. Before every vault write, read the vault's `AGENTS.md`, router `README.md`, [[agents/skills/agent-write-method/SKILL|Agent Write Method]], and relevant Obsidian writing skill.
+
+### Create a project from the vault (explicit opt-in)
+- Never scan, discover, monitor, or automatically link other project folders. Existing projects are linked only when Tarek explicitly runs the normal link command from that project.
+- When Tarek explicitly asks to create a project from this vault, first confirm the exact project name/slug, target directory, and source material (local folders or repositories). Use the coding agent's local filesystem access to inspect the supplied sources and create the project scaffold in the requested target directory.
+- The CLI does not generate application code or project scaffolds. After the project directory exists, invoke the same Vault Link core with the explicit programmatic trigger:
+  - Windows: `vault-link --link-created --local "<absolute vault path>" "<absolute project path>"`
+  - Git-hosted vault: `vault-link --link-created --repo "<credential-free Git URL>" "<absolute project path>"`
+- `--link-created` requires an explicit vault source and an existing project directory. It only performs the normal idempotent linking/configuration; it does not create the project.
+- Verify the generated managed block, ignored `.vault-link-local`, and agent imports. If already linked, the command should leave the project unchanged.
+- Do not link unrelated existing projects or infer that every project in a workspace belongs in TarekVault.
 
 ### Find and read the vault
 - Read `vault_path:` from this project's ignored `.vault-link-local`. If missing or invalid, ask Tarek for the local vault path or Git URL. Never guess.
