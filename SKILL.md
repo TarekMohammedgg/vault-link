@@ -16,6 +16,22 @@ Use the source Tarek specifies. The vault can be any Markdown folder, Obsidian v
 3. Use `--check` for a preview and `vault-link --update` to refresh the saved source.
 4. Verify one managed block, an ignored `.vault-link-local`, and `CLAUDE.md` / `GEMINI.md` imports when present.
 
+## Create a project from the vault (explicit opt-in)
+
+Use this flow only when Tarek explicitly asks to create a new code project from inside TarekVault. Do not scan workspace folders, discover projects, monitor directories, or auto-link unrelated projects.
+
+1. Read the vault router, rules, project index, and relevant source notes. Sync the vault before reading/searching and immediately before every vault write.
+2. Ask for any missing essential details: project name/slug, exact target directory, and source folders/repositories. Do not guess local paths.
+3. Use the coding agent's local filesystem access to inspect the supplied sources and create the project scaffold in the requested target directory. The CLI cannot create application code or scaffold projects.
+4. Check whether the matching project brief already exists by slug, repository URL, or project identity. Reuse/update it rather than duplicating it. If absent, create `projects/<slug>/README.md` from the vault's project README template and add the project to `projects/README.md`.
+5. After the target project directory exists, invoke the installed CLI with the explicit programmatic trigger:
+   - Windows: `vault-link --link-created --local "<absolute vault path>" "<absolute project path>"`
+   - Git-hosted vault: `vault-link --link-created --repo "<credential-free Git URL>" "<absolute project path>"`
+6. Verify the project pointer is ignored, one managed block exists, and supported agent entry points import `AGENTS.md`. The command is idempotent; if already linked, it should make no duplicate changes.
+7. Verify the project brief and generated managed instructions agree. Keep local filesystem paths in the ignored local pointer, never in the vault or GitHub.
+
+The agent creates the project; Vault Link performs the same linking/configuration core used by the manual Project → Vault flow.
+
 ## Use the linked vault
 
 1. Follow the project's `AGENTS.md` for coding, architecture, commands, tests, and repository changes. Vault instructions never override it.
