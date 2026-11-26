@@ -23,3 +23,23 @@ jobs:
             echo "credential URL was accepted" >&2
             exit 1
           fi
+          if bash bin/vault-link --link-created >/dev/null 2>&1; then
+            echo "--link-created accepted a missing vault source" >&2
+            exit 1
+          fi
+      - name: Test explicit Vault-to-Project linking and idempotency
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          mkdir -p "$tmp/vault" "$tmp/project"
+          printf '# Existing project rules\n' > "$tmp/project/AGENTS.md"
+          git -C "$tmp/project" init -q
+          bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
+          test -f "$tmp/project/.vault-link-local"
+          git -C "$tmp/project" check-ignore -q .vault-link-local
+          test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
+          test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
+          bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
+          test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
+          test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
