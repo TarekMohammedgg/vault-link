@@ -83,7 +83,7 @@ The managed instructions establish this workflow:
 1. Read the project's `AGENTS.md` first. It remains authoritative for project work.
 2. Use the linked vault as shared memory, following the vault's own router, `AGENTS.md`, and writing method for vault operations.
 3. Keep the project's README and the vault's concise project README current when meaningful project facts change.
-4. Ask Tarek before saving durable personal preferences, cross-project workflows, or reusable skills.
+4. Ask Tarek before saving durable personal preferences or habits, cross-project workflows, or reusable skills.
 5. Never create session logs, conversation summaries, or routine activity histories.
 
 The tool only links the vault; the agent performs the contextual reading and approved documentation updates. No vault content is copied into the project repository.
