@@ -39,7 +39,13 @@ jobs:
           test -f "$tmp/project/.vault-link-local"
           git -C "$tmp/project" check-ignore -q .vault-link-local
           test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
+          test "$(grep -c '^<!-- vault-link:end -->          bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
+          test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
           test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
+ "$tmp/project/AGENTS.md")" -eq 1
+          grep -q "### Work from either entry point" "$tmp/project/AGENTS.md"
+          grep -q "### Shared completion state" "$tmp/project/AGENTS.md"
+          grep -q "projects/<slug>/README.md" "$tmp/project/AGENTS.md"
           bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
           test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
           test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
