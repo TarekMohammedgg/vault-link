@@ -45,6 +45,12 @@ install_portable() {
         cp "$BIN/$launcher" "$target/$launcher"
       fi
     done
+    legacy="$target/vault-link-legacy"
+    if [ -f "$legacy" ] && [ ! -L "$legacy" ] && grep -qE 'vl_launch|TAREKVAULT' "$legacy"; then
+      rm -- "$legacy"
+      rm -f -- "$target/.vault-link-checkout"
+      say "Removed legacy launcher."
+    fi
   fi
   chmod +x "$target/vault-link"
   say "Installed in $target. Add this directory to PATH if needed."
