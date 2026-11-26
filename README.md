@@ -1,8 +1,8 @@
 # vault-link
 
-Connect a code project to a local or Git-hosted knowledge vault and make that vault available to the project's AI agent as a **Second Brain**.
+Connect a code project to a local or Git-hosted knowledge vault and make that vault available to any AI agent as a **shared Second Brain**.
 
-The project remains the agent's workspace and source of truth for code. Its own `AGENTS.md` governs project work. The linked vault supplies durable context, preferences, reusable workflows, and skills; the vault's own `AGENTS.md` governs every vault read and write.
+The project's own `AGENTS.md` governs work inside the repository. The linked vault provides cross-model context, canonical project briefs, and reusable workflows.
 
 ## Install
 
@@ -40,11 +40,11 @@ Running the installer again upgrades the command.
 
 ## Link a project
 
-Run it from the project root, or pass the project directory as the last argument. Pick one source.
+Run from the project root, or pass the project directory as the last argument. Pick one source.
 
 ```bash
 vault-link --local "$HOME/TarekVault"
-vault-link --repo "https://github.com/you/vault"
+vault-link --repo "https://github.com/you/your-vault"
 ```
 
 | Source | Use it when |
@@ -56,7 +56,7 @@ Preview without writing or cloning:
 
 ```bash
 vault-link --check --local "$HOME/TarekVault"
-vault-link --check --repo "https://github.com/you/vault"
+vault-link --check --repo "https://github.com/you/your-vault"
 ```
 
 Use a normal `https://` or `ssh://` / `git@` URL. Do not put a token, password, query string, or fragment in the URL. Private repositories use the Git credentials already configured on the machine.
@@ -67,30 +67,35 @@ Refresh the saved source later:
 vault-link --update
 ```
 
-A repository link fast-forwards its cache. A local link reads the folder as it is now. Run `--local` or `--repo` again to switch sources. The cache defaults to `~/.cache/vault-link`; set `VAULT_LINK_CACHE` to move it.
+## How agents use the vault
+
+1. Read the project's `AGENTS.md` first; it remains authoritative for project work.
+2. Sync the vault before reading and before every write.
+3. Read the vault router and rules, then the relevant project README and workflow notes.
+4. Treat `projects/<slug>/README.md` as the **canonical Agent Project Brief** shared by all models. It is not a copy of the public GitHub README.
+5. Update the brief in place when verified project context changes. Keep it concise; replace stale facts rather than appending session history.
+6. Reuse workflows in `agents/workflows/` via Obsidian wikilinks. Create a separate note for a genuinely reusable new workflow, add it to the workflows index, and link it from the project brief.
+7. Follow the Agent Write Method and Obsidian conventions for all vault notes.
+8. Never create session logs, conversation summaries, transcripts, hand-offs, or routine activity histories.
+
+## Authority boundaries
+
+- Project `AGENTS.md`: project-specific working rules.
+- Project code/configuration/tests: evidence of implementation.
+- Vault project README: canonical cross-model project context.
+- `agents/workflows/`: reusable procedures.
+- Vault `AGENTS.md`, router, and Agent Write Method: vault operations.
 
 ## What changes in the project
 
 | File | Result |
 | --- | --- |
-| `AGENTS.md` | One managed Second Brain section between `<!-- vault-link:start -->` and `<!-- vault-link:end -->`. Text outside the block is preserved. |
-| `CLAUDE.md` and `GEMINI.md` | `@AGENTS.md` is added when that import is missing. Existing lines stay. |
+| `AGENTS.md` | One managed Second Brain section between the Vault Link markers. Text outside the block is preserved. |
+| `CLAUDE.md` and `GEMINI.md` | `@AGENTS.md` is added when that import is missing. |
 | `.gitignore` | `/.vault-link-local` is ignored. |
-| `.vault-link-local` | Records `source` and `vault_path`. A Git source also records `vault_repo`. This file is machine-local. |
+| `.vault-link-local` | Stores the machine-local vault pointer; never commit it. |
 
-The managed instructions establish this workflow:
-
-1. Read the project's `AGENTS.md` first. It remains authoritative for project work.
-2. Use the linked vault as shared memory, following the vault's own router, `AGENTS.md`, and writing method for vault operations.
-3. Keep the project's README and the vault's concise project README current when meaningful project facts change.
-4. Ask Tarek before saving durable personal preferences or habits, cross-project workflows, or reusable skills.
-5. Never create session logs, conversation summaries, or routine activity histories.
-
-The tool only links the vault; the agent performs the contextual reading and approved documentation updates. No vault content is copied into the project repository.
-
-## Agent skill
-
-[SKILL.md](SKILL.md) describes how an agent should link, read, and use the vault. [INIT-PROMPT.md](INIT-PROMPT.md) is the manual fallback when the command cannot be run.
+The tool links the vault; the agent performs contextual reading and documentation updates. No vault content is copied into the project repository.
 
 ## Command
 
@@ -109,8 +114,8 @@ vault-link [--check | --update] [PROJECT_DIR]
 | `bin/vault-link.cmd` | Windows launcher. |
 | `bin/vault-link.ps1` | PowerShell launcher. |
 | `install.sh` / `install.ps1` | Installers. |
-| `SKILL.md` | Agent skill. |
-| `INIT-PROMPT.md` | Manual linking steps. |
+| `SKILL.md` | Agent operating rules. |
+| `INIT-PROMPT.md` | Manual linking fallback. |
 
 ## License
 
