@@ -113,6 +113,8 @@ The tool links the vault; the agent performs contextual reading and documentatio
 vault-link --install
 vault-link [--check] --local DIR [PROJECT_DIR]
 vault-link [--check] --repo GIT_URL [PROJECT_DIR]
+vault-link --link-created [--check] --local DIR PROJECT_DIR
+vault-link --link-created [--check] --repo GIT_URL PROJECT_DIR
 vault-link [--check | --update] [PROJECT_DIR]
 ```
 
@@ -120,7 +122,7 @@ vault-link [--check | --update] [PROJECT_DIR]
 
 | Path | Role |
 | --- | --- |
-| `bin/vault-link` | Cross-platform command. |
+| `bin/vault-link` | Cross-platform command; `--link-created` is the explicit Vault → Project trigger. |
 | `bin/vault-link.cmd` | Windows launcher. |
 | `bin/vault-link.ps1` | PowerShell launcher. |
 | `install.sh` / `install.ps1` | Installers. |
