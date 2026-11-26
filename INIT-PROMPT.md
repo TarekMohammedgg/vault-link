@@ -25,3 +25,21 @@ tags: []
 8. Verify the pointer is ignored and exactly one managed block exists.
 
 Do not copy vault notes or credentials into the project. Follow the vault's Agent Write Method for every vault note.
+
+## Vault → Project: create first, then link
+
+Use this only after Tarek explicitly asks to create a new project from inside TarekVault.
+
+1. Ask for the exact project name/slug, target directory, and source folders/repositories if missing. Never scan or auto-discover other folders.
+2. Use the coding agent's local filesystem access to inspect the supplied sources and create the project scaffold in the requested target directory. Vault Link itself does not generate project code.
+3. Reuse the matching project brief if it exists. Otherwise create `projects/<slug>/README.md` from the vault's project README template and add its row to `projects/README.md`.
+4.. After the target directory exists, run the explicit programmatic trigger:
+
+   ```powershell
+   vault-link --link-created --local "<absolute vault path>" "<absolute project path>"
+   ```
+
+   Use `--repo "<credential-free Git URL>"` instead of `--local` for a Git-hosted vault.
+5. Verify the pointer, managed block, and agent imports. This mode only links/configures an existing project; it does not create the scaffold. Re-running it must not duplicate setup.
+
+No background monitoring, automatic discovery, or auto-linking of unrelated projects is allowed.
