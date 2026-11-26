@@ -9,6 +9,17 @@ metadata:
 
 Use the source Tarek specifies. The vault can be any Markdown folder, Obsidian vault, or Git repository.
 
+## Shared behavior from either entry point
+
+The entry point does not change the operating rules or the required final state.
+
+- If work is requested inside a code project, read that project's root `AGENTS.md` first. It governs all project code work.
+- If the task also reads, searches, or changes TarekVault, read the vault's own `AGENTS.md`, router `README.md`, and relevant skills. For every vault write, follow Agent Write Method and Obsidian conventions. Never assume project instructions replace vault instructions.
+- If work is requested from inside TarekVault and targets an existing or newly created code project, read that project's root `AGENTS.md` before changing it, then apply the same Vault Link managed block and local pointer as the Project → Vault flow.
+- For tasks spanning both sides, perform code changes under project rules and vault changes under vault rules. Update the canonical vault project brief when verified project facts change.
+- A complete link always converges to the same state: one managed section in project `AGENTS.md`; ignored `.vault-link-local`; `.gitignore` exclusion; agent entry-point imports where applicable; one canonical `projects/<slug>/README.md` and an index entry in the vault.
+- The CLI creates/updates the project-side files. The agent creates or updates the vault-side project brief and index because that requires identifying the correct project and following vault-specific sync/write rules. Verify both sides before calling the link complete.
+
 ## Link or refresh
 
 1. Read the target project's root `AGENTS.md` first. Preserve it; it is authoritative for project work.
