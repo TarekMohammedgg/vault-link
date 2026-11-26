@@ -1,12 +1,12 @@
 ---
-title: "Vault Link manual setup"
+title: "Vault Link setup"
 type: guide
 updated: 2026-11-26
 description: "Open when an agent must connect a project to Tarek's Second Brain without the vault-link CLI."
 tags: []
 ---
 
-# Link a project to the Second Brain manually
+# Link a project to the Second Brain
 
 1. Work from the target project's root. Read its existing `AGENTS.md` first and preserve it as the authority for project work.
 2. Ask Tarek for the exact local vault directory or Git URL if it has not been supplied. Never guess the path.
