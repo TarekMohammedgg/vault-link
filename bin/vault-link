@@ -172,7 +172,8 @@ cat >"$scratch/block" <<'EOF'
 
 ### Find and read the vault
 - Read `vault_path:` from this project's ignored `.vault-link-local`. If the pointer is missing or invalid, ask Tarek for the local vault path or Git URL. Never guess or silently use a stale copy.
-- For TarekVault, start with its root `README.md`, then open only the relevant project README or memory files. Search before opening or creating files; do not load the whole vault.
+- Before the first read/search in TarekVault, run `git pull --rebase --autostash` in the vault and check `git status -sb`. If the pull fails or the branch is behind, do not read stale content for decisions or write; tell Tarek.
+- After syncing, read the vault's `AGENTS.md` and root `README.md`, then open only the relevant project README or memory files. Search before opening or creating files; do not load the whole vault.
 - Keep the project repository as the source of truth for code and detailed technical documentation. The vault is shared context and a concise project index.
 
 ### Keep project documentation current
@@ -194,7 +195,7 @@ cat >"$scratch/block" <<'EOF'
 This integration must not create or append session records. Do not write to `agents/sessions/`, `agent-log.md`, session hand-offs, or `journal/` as part of ordinary project work. Do not create inbox captures either. This is Tarek's explicit instruction for this integration and overrides conflicting general session-logging or automatic-capture rules.
 
 ### Sync and reporting
-- For TarekVault, before the first read/search and again immediately before every write, run `git pull --rebase --autostash` in the vault and check `git status -sb`. If pull fails or the branch is behind, do not write; tell Tarek that the vault may be stale.
+- Before every TarekVault write, run `git pull --rebase --autostash` again and check `git status -sb`. If pull fails or the branch is behind, do not write; tell Tarek that the vault may be stale.
 - For any other vault, follow its own `AGENTS.md` sync procedure. If sync fails or the vault may be stale, do not write.
 - After an approved vault write, commit and push only the changed vault files using the vault's Git rules. Never force-push or store secrets.
 - Do not claim a vault update unless it was actually committed and pushed successfully.
