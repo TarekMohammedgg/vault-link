@@ -102,7 +102,8 @@ while [ "$#" -gt 0 ]; do
       [ -z "$explicit" ] || die 'Choose one source with --local or --repo.'
       [ "$#" -ge 2 ] && [[ "$2" != --* ]] || die "$1 needs a value."
       explicit=1; source_type="${1#--}"; source_value="$2"; shift ;;
-    --check) check=yes ;;\n    --link-created) programmatic=yes ;;
+    --check) check=yes ;;
+    --link-created) programmatic=yes ;;
     --update) update=yes ;;
     --install) install=yes ;;
     --*) die "Unknown option: $1" ;;
@@ -128,7 +129,8 @@ if [ -z "$explicit" ] && [ ! -f "$candidate/$CONFIG" ] && [ ! -L "$candidate/$CO
 fi
 [ "${#operands[@]}" -le 1 ] || die 'Pass one project directory for this vault link.'
 [ -d "$candidate" ] || die 'The project directory does not exist.'
-project="$(cd "$candidate" && pwd -P)"\nif [ "$programmatic" = yes ]; then say "Linking the explicitly requested, already-created project: $project"; fi
+project="$(cd "$candidate" && pwd -P)"
+if [ "$programmatic" = yes ]; then say "Linking the explicitly requested, already-created project: $project"; fi
 for name in "$CONFIG" AGENTS.md .gitignore; do
   [ ! -L "$project/$name" ] || die "Refusing to edit a symlink: $name"
   [ ! -e "$project/$name" ] || [ -f "$project/$name" ] || die "Expected a file: $name"
