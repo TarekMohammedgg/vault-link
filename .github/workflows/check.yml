@@ -27,25 +27,24 @@ jobs:
             echo "--link-created accepted a missing vault source" >&2
             exit 1
           fi
-      - name: Test explicit Vault-to-Project linking and idempotency
+      - name: Test both project-side setup and idempotency
         run: |
           set -euo pipefail
           tmp="$(mktemp -d)"
           trap 'rm -rf "$tmp"' EXIT
           mkdir -p "$tmp/vault" "$tmp/project"
-          printf '# Existing project rules\n' > "$tmp/project/AGENTS.md"
+          printf '# Existing project rules\n\nKeep these rules.\n' > "$tmp/project/AGENTS.md"
           git -C "$tmp/project" init -q
           bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
           test -f "$tmp/project/.vault-link-local"
           git -C "$tmp/project" check-ignore -q .vault-link-local
           test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
-          test "$(grep -c '^<!-- vault-link:end -->          bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
-          test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
           test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
- "$tmp/project/AGENTS.md")" -eq 1
-          grep -q "### Work from either entry point" "$tmp/project/AGENTS.md"
-          grep -q "### Shared completion state" "$tmp/project/AGENTS.md"
-          grep -q "projects/<slug>/README.md" "$tmp/project/AGENTS.md"
+          grep -q '^# Existing project rules$' "$tmp/project/AGENTS.md"
+          grep -q 'Keep these rules.' "$tmp/project/AGENTS.md"
+          grep -q '### Work from either entry point' "$tmp/project/AGENTS.md"
+          grep -q '### Shared completion state' "$tmp/project/AGENTS.md"
+          grep -q 'projects/<slug>/README.md' "$tmp/project/AGENTS.md"
           bash bin/vault-link --link-created --local "$tmp/vault" "$tmp/project"
           test "$(grep -c '^<!-- vault-link:start -->$' "$tmp/project/AGENTS.md")" -eq 1
           test "$(grep -c '^<!-- vault-link:end -->$' "$tmp/project/AGENTS.md")" -eq 1
