@@ -1,8 +1,8 @@
 # vault-link
 
-Connect a code project to a vault. The vault can be a Markdown folder or an Obsidian vault.
+Connect a code project to a local or Git-hosted knowledge vault and make that vault available to the project's AI agent as a **Second Brain**.
 
-`vault-link` writes one managed section into the project's agent instructions. Cursor, Claude Code, Gemini CLI, and other agents can then find the vault and follow its own rules. The vault stays in its own folder. The project stores only a local pointer, and that pointer is kept out of Git.
+The project remains the agent's workspace and source of truth for code. Its own `AGENTS.md` governs project work. The linked vault supplies durable context, preferences, reusable workflows, and skills; the vault's own `AGENTS.md` governs every vault read and write.
 
 ## Install
 
@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/TarekMohammedgg/vault-link/main/ins
 irm https://raw.githubusercontent.com/TarekMohammedgg/vault-link/main/install.ps1 | iex
 ```
 
-The installer clones this repository and copies the command to `~/.local/bin`. Add that directory to your `PATH` if a new terminal does not find `vault-link`. Set `VAULT_LINK_BIN` before installing to choose another directory. Set `VAULT_LINK_SRC` to choose where the clone is stored (`~/.local/share/vault-link`, or `%LOCALAPPDATA%\vault-link` on Windows).
+The installer clones this repository and copies the command to `~/.local/bin`. Add that directory to your `PATH` if a new terminal does not find `vault-link`. Set `VAULT_LINK_BIN` before installing to choose another directory. Set `VAULT_LINK_SRC` to choose where the clone is stored (`~/.local/share/vault-link`, or `%LOCALAPPDATA%\\vault-link` on Windows).
 
 ### Install from a checkout
 
@@ -33,7 +33,7 @@ bash ./bin/vault-link --install
 On Windows, from the cloned folder:
 
 ```powershell
-.\bin\vault-link.cmd --install
+.\\bin\\vault-link.cmd --install
 ```
 
 Running the installer again upgrades the command.
@@ -43,19 +43,19 @@ Running the installer again upgrades the command.
 Run it from the project root, or pass the project directory as the last argument. Pick one source.
 
 ```bash
-vault-link --local "$HOME/vault"
+vault-link --local "$HOME/TarekVault"
 vault-link --repo "https://github.com/you/vault"
 ```
 
 | Source | Use it when |
 | --- | --- |
-| `--local DIR` | The vault is a folder on this machine. It does not need a marker file or a fixed layout. |
+| `--local DIR` | The vault is a folder on this machine. |
 | `--repo GIT_URL` | The vault is a Git repository. It is cloned into a cache and refreshed on update. |
 
-Preview the edits without writing or cloning:
+Preview without writing or cloning:
 
 ```bash
-vault-link --check --local "$HOME/vault"
+vault-link --check --local "$HOME/TarekVault"
 vault-link --check --repo "https://github.com/you/vault"
 ```
 
@@ -73,18 +73,24 @@ A repository link fast-forwards its cache. A local link reads the folder as it i
 
 | File | Result |
 | --- | --- |
-| `AGENTS.md` | One block between `<!-- vault-link:start -->` and `<!-- vault-link:end -->`. Text outside that block is kept. An older `vault-bridge` block is replaced once. |
+| `AGENTS.md` | One managed Second Brain section between `<!-- vault-link:start -->` and `<!-- vault-link:end -->`. Text outside the block is preserved. |
 | `CLAUDE.md` and `GEMINI.md` | `@AGENTS.md` is added when that import is missing. Existing lines stay. |
 | `.gitignore` | `/.vault-link-local` is ignored. |
 | `.vault-link-local` | Records `source` and `vault_path`. A Git source also records `vault_repo`. This file is machine-local. |
 
-The managed block tells an agent to read `vault_path` from `.vault-link-local`, start at the vault's `AGENTS.md` or top-level `README.md`, and follow that vault's read and write rules.
+The managed instructions establish this workflow:
 
-Run the command from a project directory that is outside the vault folder.
+1. Read the project's `AGENTS.md` first. It remains authoritative for project work.
+2. Use the linked vault as shared memory, following the vault's own router, `AGENTS.md`, and writing method for vault operations.
+3. Keep the project's README and the vault's concise project README current when meaningful project facts change.
+4. Ask Tarek before saving durable personal preferences, cross-project workflows, or reusable skills.
+5. Never create session logs, conversation summaries, or routine activity histories.
+
+The tool only links the vault; the agent performs the contextual reading and approved documentation updates. No vault content is copied into the project repository.
 
 ## Agent skill
 
-[SKILL.md](SKILL.md) is the skill an agent should follow when linking or refreshing a vault. [INIT-PROMPT.md](INIT-PROMPT.md) is the manual fallback when the command cannot be run.
+[SKILL.md](SKILL.md) describes how an agent should link, read, and use the vault. [INIT-PROMPT.md](INIT-PROMPT.md) is the manual fallback when the command cannot be run.
 
 ## Command
 
@@ -99,11 +105,10 @@ vault-link [--check | --update] [PROJECT_DIR]
 
 | Path | Role |
 | --- | --- |
-| `bin/vault-link` | Command. |
+| `bin/vault-link` | Cross-platform command. |
 | `bin/vault-link.cmd` | Windows launcher. |
 | `bin/vault-link.ps1` | PowerShell launcher. |
-| `install.sh` | Clone and install on macOS or Linux. |
-| `install.ps1` | Clone and install on Windows. |
+| `install.sh` / `install.ps1` | Installers. |
 | `SKILL.md` | Agent skill. |
 | `INIT-PROMPT.md` | Manual linking steps. |
 
