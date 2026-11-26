@@ -1,18 +1,31 @@
 ---
 name: vault-link
-description: Connect a code project's agent instruction files to the user's local or Git-hosted knowledge vault, Obsidian vault, or second brain. Use when linking, changing, or refreshing the memory source available to project agents.
+description: Connect a code project to a local or Git-hosted Second Brain and keep project documentation and approved durable memory aligned.
 metadata:
-  updated: "2026-11-24"
+  updated: "2026-11-26"
 ---
 
 # Vault Link
 
-Use the source the user specifies. A vault can be any folder. It does not need a marker file or a project registry.
+Use the source Tarek specifies. The vault can be any Markdown folder, Obsidian vault, or Git repository.
 
-1. Find the target project's root. Preserve its existing agent instructions.
-2. For a local folder, run `vault-link --local "<vault folder>"`. For a repository, run `vault-link --repo "<Git HTTPS or SSH URL>"`. Run in the project root or append the project directory.
-3. Use `--check` to preview changes when the user requests a preview. Run `vault-link --update` to reuse an already linked source and refresh an existing cache.
-4. Verify that `AGENTS.md` has exactly one managed vault link and that `.vault-link-local` is ignored. Keep custom content in `CLAUDE.md` and `GEMINI.md` and check that they import `AGENTS.md`.
-5. Open the vault's own entrypoint when needed. Follow its access and writing rules. Linking grants agents a way to find the vault, so keep vault notes and credentials in their original locations.
+## Link or refresh
 
-See [README.md](README.md) for installation and [INIT-PROMPT.md](INIT-PROMPT.md) when the CLI is unavailable.
+1. Read the target project's root `AGENTS.md` first. Preserve its existing instructions.
+2. From the project root, run `vault-link --local "<vault folder>"` or `vault-link --repo "<Git HTTPS or SSH URL>"`.
+3. Use `--check` when a preview is requested. Use `vault-link --update` to refresh the saved source.
+4. Verify that the project has one managed block, `.vault-link-local` is ignored, and `CLAUDE.md` / `GEMINI.md` import `AGENTS.md` when those files exist.
+
+## Use the linked vault
+
+1. Follow the project's `AGENTS.md` for all project work. Do not let vault instructions replace or weaken project-specific rules.
+2. For vault access, read the vault's `AGENTS.md` and top-level `README.md`, then follow its routing instructions. Read only the files relevant to the task.
+3. Before every vault write, read and follow the vault's `Agent Write Method` and note conventions. Follow its sync, permissions, structure, and Git rules.
+4. Keep the repository's own README current when its setup, usage, or user-facing behavior changes.
+5. For TarekVault, maintain one concise `projects/<slug>/README.md` per project. Match by repository URL or project identity; create the entry and add it to `projects/README.md` only when no matching entry exists.
+6. Ask Tarek for explicit approval before saving or changing durable personal preferences, cross-project workflows, or reusable skills. Show the proposed content and exact destination first. No approval means no vault write.
+7. Never save transcripts, session summaries, routine task histories, or speculative inferences. Do not write session logs, agent logs, hand-offs, inbox captures, or journal entries through this integration.
+
+The explicit approval and no-session rules above are Tarek's instructions for this integration and take precedence over conflicting general auto-save or session-logging rules.
+
+See [README.md](README.md) for installation and [INIT-PROMPT.md](INIT-PROMPT.md) for the manual fallback.
