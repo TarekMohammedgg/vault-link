@@ -40,7 +40,7 @@ Running the installer again upgrades the command.
 
 ## Link a project
 
-Run from the project root, or pass the project directory as the last argument. Pick one source.
+Run from the project root, or pass the project directory as the last argument. Pick one source. The normal command is the manual Project → Vault trigger; it never discovers or links other folders.
 
 ```bash
 vault-link --local "$HOME/TarekVault"
@@ -60,6 +60,16 @@ vault-link --check --repo "https://github.com/you/your-vault"
 ```
 
 Use a normal `https://` or `ssh://` / `git@` URL. Do not put a token, password, query string, or fragment in the URL. Private repositories use the Git credentials already configured on the machine.
+
+### Create a project from the vault
+
+When the user explicitly asks an agent working inside TarekVault to create a code project, the agent creates the project scaffold in the requested local target directory using the supplied source folders/repositories, then invokes the same CLI in explicit programmatic mode:
+
+```powershell
+vault-link --link-created --local "D:\Shared\TarekVault" "D:\Projects\my-new-project"
+```
+
+For a Git-hosted vault, use `--repo "<credential-free Git URL>"` instead. This command requires an existing project directory and an explicit vault source. It only links/configures the project; the coding agent creates the scaffold. It is idempotent and does not scan, monitor, or auto-link other folders.
 
 Refresh the saved source later:
 
