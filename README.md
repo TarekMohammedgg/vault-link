@@ -77,10 +77,27 @@ Refresh the saved source later:
 vault-link --update
 ```
 
+## Same result from either direction
+
+The user can start from either side:
+
+- **Project → Vault:** run the CLI in a selected existing code project.
+- **Vault → Project:** after an explicit request to create or connect a project, the vault agent creates/inspects the target project and runs the CLI with `--link-created`.
+
+Both paths must converge to the same final state:
+1. The project's `AGENTS.md` contains one Vault Link managed section.
+2. `.vault-link-local` points to the vault and is ignored by Git.
+3. `.gitignore` excludes that local pointer.
+4. `CLAUDE.md` / `GEMINI.md` import `AGENTS.md` where applicable.
+5. TarekVault contains one canonical `projects/<slug>/README.md` and an entry in `projects/README.md`.
+
+The CLI is responsible for items 1–4. The agent is responsible for item 5: it must identify the project, follow the vault's own `AGENTS.md`, router, sync rules, Agent Write Method, and Obsidian conventions. The same responsibilities apply whichever side initiated the task.
+
 ## How agents use the vault
 
 1. Read the project's `AGENTS.md` first; it remains authoritative for project work.
-2. Sync the vault before reading and before every write.
+2. Whenever the task touches the vault, also read the vault's own `AGENTS.md`, router, and relevant skills. Vault rules govern vault operations; project rules govern code work.
+3. Sync the vault before reading and before every write.
 3. Read the vault router and rules, then the relevant project README and workflow notes.
 4. Treat `projects/<slug>/README.md` as the **canonical Agent Project Brief** shared by all models. It is not a copy of the public GitHub README.
 5. Update the brief in place when verified project context changes. Keep it concise; replace stale facts rather than appending session history.
