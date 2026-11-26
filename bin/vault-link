@@ -184,10 +184,10 @@ cat >"$scratch/block" <<'EOF'
 - Do not put code, diffs, transcripts, or detailed implementation notes in the vault project README. Keep it concise and link to the project repository.
 
 ### Propose durable memory; never save it without approval
-- Notice potentially useful, durable items: Tarek's personal preferences, cross-project workflows, and reusable skills.
+- Notice potentially useful, durable items: Tarek's personal preferences and habits, cross-project workflows, and reusable skills.
 - Before saving or changing any such item in TarekVault, show Tarek the proposed content and exact destination, then wait for explicit approval (for example, "أيوه"). No approval means no write.
 - Search first and edit an existing suitable file when possible. Follow `Agent Write Method`: one topic per file, small files, `type` and `description`, one hub, and links with their reason.
-- Save approved stable preferences in the appropriate `core/` file. Save approved cross-project workflows in `agents/` as their own workflow file and link them from the relevant hub. Save approved reusable skills in `agents/skills/<slug>/` with a README and SKILL, and update the skills map.
+- Save approved stable preferences in the appropriate `core/` file. Save approved habits in the existing vault location that best fits them, following its folder README and routing rules. Save approved cross-project workflows in `agents/` as their own workflow file and link them from the relevant hub. Save approved reusable skills in `agents/skills/<slug>/` with a README and SKILL, and update the skills map.
 - Project-specific implementation details and workflows stay in this repository; reference them from the vault project README when useful.
 - Never save chat transcripts, session summaries, routine task histories, or speculative inferences.
 
