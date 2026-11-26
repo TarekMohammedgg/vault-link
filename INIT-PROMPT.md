@@ -21,7 +21,7 @@ tags: []
    - Project `AGENTS.md` governs project work.
    - Vault `AGENTS.md`, router, and Agent Write Method govern vault operations.
    - Keep project documentation current.
-   - Ask before saving durable preferences, cross-project workflows, or reusable skills.
+   - Ask before saving durable preferences or habits, cross-project workflows, or reusable skills.
    - Never log sessions or routine activity.
 7. Add `@AGENTS.md` to `CLAUDE.md` and `GEMINI.md` if the import is missing. Preserve their existing instructions.
 8. Verify that the pointer is ignored and exactly one managed block exists.
