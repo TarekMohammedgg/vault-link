@@ -194,7 +194,8 @@ cat >"$scratch/block" <<'EOF'
 This integration must not create or append session records. Do not write to `agents/sessions/`, `agent-log.md`, session hand-offs, or `journal/` as part of ordinary project work. Do not create inbox captures either. This is Tarek's explicit instruction for this integration and overrides conflicting general session-logging or automatic-capture rules.
 
 ### Sync and reporting
-- Before reading or writing the vault, follow its `AGENTS.md` sync procedure. Before every vault write, sync again as required by that file. If sync fails or the vault may be stale, do not write.
+- For TarekVault, before the first read/search and again immediately before every write, run `git pull --rebase --autostash` in the vault and check `git status -sb`. If pull fails or the branch is behind, do not write; tell Tarek that the vault may be stale.
+- For any other vault, follow its own `AGENTS.md` sync procedure. If sync fails or the vault may be stale, do not write.
 - After an approved vault write, commit and push only the changed vault files using the vault's Git rules. Never force-push or store secrets.
 - Do not claim a vault update unless it was actually committed and pushed successfully.
 <!-- vault-link:end -->
