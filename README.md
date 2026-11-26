@@ -20,7 +20,7 @@ curl -fsSL https://raw.githubusercontent.com/TarekMohammedgg/vault-link/main/ins
 irm https://raw.githubusercontent.com/TarekMohammedgg/vault-link/main/install.ps1 | iex
 ```
 
-The installer clones this repository and copies the command to `~/.local/bin`. Add that directory to your `PATH` if a new terminal does not find `vault-link`. Set `VAULT_LINK_BIN` before installing to choose another directory. Set `VAULT_LINK_SRC` to choose where the clone is stored (`~/.local/share/vault-link`, or `%LOCALAPPDATA%\\vault-link` on Windows).
+The installer clones this repository and copies the command to `~/.local/bin`. Add that directory to your `PATH` if a new terminal does not find `vault-link`. Set `VAULT_LINK_BIN` before installing to choose another directory. Set `VAULT_LINK_SRC` to choose where the clone is stored (`~/.local/share/vault-link`, or `%LOCALAPPDATA%\vault-link` on Windows).
 
 ### Install from a checkout
 
@@ -33,7 +33,7 @@ bash ./bin/vault-link --install
 On Windows, from the cloned folder:
 
 ```powershell
-.\\bin\\vault-link.cmd --install
+.\bin\vault-link.cmd --install
 ```
 
 Running the installer again upgrades the command.
