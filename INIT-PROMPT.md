@@ -1,18 +1,28 @@
 ---
-title: "Vault link manual fallback"
+title: "Vault Link manual setup"
 type: guide
-updated: 2026-11-24
-description: "Open when an agent must link a local vault and cannot use the vault-link command."
+updated: 2026-11-26
+description: "Open when an agent must connect a project to Tarek's Second Brain without the vault-link CLI."
 tags: []
 ---
 
-# Link a vault manually
+# Link a project to the Second Brain manually
 
-Use the project's root and the exact local vault directory the user provides. For a remote vault, use an existing authorized checkout or ask the user for access to one.
+1. Work from the target project's root. Read its existing `AGENTS.md` first and preserve all project-specific instructions.
+2. Ask Tarek for the exact local vault directory or Git URL if it has not been supplied. Never guess the path.
+3. Add `/.vault-link-local` to the project's `.gitignore`.
+4. Create `.vault-link-local` with:
+   - `source: local`
+   - `vault_path: <absolute local path>`
 
-1. Add `/.vault-link-local` to the project's ignore file. Create `.vault-link-local` with `source: local` and `vault_path: <absolute local path>` on separate lines.
-2. Append a managed section to `AGENTS.md` or replace the existing complete section delimited by `<!-- vault-link:start -->` and `<!-- vault-link:end -->`. Treat an existing complete `vault-bridge` section as the same link. Preserve everything outside the markers.
-3. In the managed section, tell agents to read `vault_path:` from the ignored pointer. Have them start with the vault's `AGENTS.md` or top-level `README.md` and follow its rules.
-4. Add `@AGENTS.md` to `CLAUDE.md` and `GEMINI.md` if the import is missing. Preserve their existing instructions.
+   For a Git source, use `source: repo`, set `vault_path` to the local cache path, and add `vault_repo: <credential-free Git URL>`.
+5. Add or replace one complete managed section in the project's `AGENTS.md`, delimited by `<!-- vault-link:start -->` and `<!-- vault-link:end -->`. Preserve everything outside the markers. Use the behavior in [SKILL.md](SKILL.md):
+   - Project `AGENTS.md` governs project work.
+   - Vault `AGENTS.md`, router, and Agent Write Method govern vault operations.
+   - Keep project documentation current.
+   - Ask before saving durable preferences, cross-project workflows, or reusable skills.
+   - Never log sessions or routine activity.
+6. Add `@AGENTS.md` to `CLAUDE.md` and `GEMINI.md` if the import is missing. Preserve their existing instructions.
+7. Verify that the pointer is ignored and exactly one managed block exists.
 
-Verify that the project contains one link and that the pointer is ignored. Vault notes and credentials stay outside the generated instructions.
+Do not copy vault notes or credentials into the project. Do not write to the vault until its own rules have been read and any required approval has been obtained.
