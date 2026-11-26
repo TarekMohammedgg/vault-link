@@ -33,7 +33,7 @@ Use this only after Tarek explicitly asks to create a new project from inside Ta
 1. Ask for the exact project name/slug, target directory, and source folders/repositories if missing. Never scan or auto-discover other folders.
 2. Use the coding agent's local filesystem access to inspect the supplied sources and create the project scaffold in the requested target directory. Vault Link itself does not generate project code.
 3. Reuse the matching project brief if it exists. Otherwise create `projects/<slug>/README.md` from the vault's project README template and add its row to `projects/README.md`.
-4.. After the target directory exists, run the explicit programmatic trigger:
+4. After the target directory exists, run the explicit programmatic trigger:
 
    ```powershell
    vault-link --link-created --local "<absolute vault path>" "<absolute project path>"
