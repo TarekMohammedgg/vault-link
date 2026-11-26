@@ -112,7 +112,7 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 if [ "$install" = yes ]; then
-  [ -z "$explicit" ] && [ "$check$update" = nono ] && [ "${#operands[@]}" -eq 0 ] || die 'Use --install on its own.'
+  [ -z "$explicit" ] && [ "$check$update" = nono ] && [ "$programmatic" = no ] && [ "${#operands[@]}" -eq 0 ] || die 'Use --install on its own.'
   install_portable
   exit
 fi
